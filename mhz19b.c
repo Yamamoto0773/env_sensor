@@ -36,7 +36,7 @@ int connect_mhz19b(const char* device_name) {
     tcsetattr(fd, TCSANOW, &cur);
     ioctl(fd, TCSETS, &cur);
 
-    return fd;
+    return 0;
 }
 
 int get_co2() {
@@ -80,7 +80,9 @@ void close_mhz19b() {
 int main() {
     const char* device_name = "/dev/serial0";
     
-    connect_mhz19b(device_name);
+    if (connect_mhz19b(device_name) < 0) {
+        return -1;
+    }
     
     while (1) {
         int co2 = get_co2();

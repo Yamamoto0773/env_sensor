@@ -1,8 +1,13 @@
 #include "i2c.h"
 
 
-float get_pressure(int fd);
+int get_pressure(float* out);
 
-float get_temperature(int fd);
+int get_temperature(float* out);
 
-void turn_active_and_config(int fd);
+void active_1hz();
+
+int connect_lps331ap(const char* device_name, const unsigned char i2c_address);
+
+void close_lps331ap();
+

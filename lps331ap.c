@@ -10,28 +10,63 @@
 #define TEMP_OUT_H 0x2C
 
 
-float get_pressure(int fd) {
-    __u32 press_xl = i2c_read(fd, PRESS_POUT_XL_REH);
-    __u32 press_l = i2c_read(fd, PRESS_OUT_L);
-    __u32 press_h = i2c_read(fd, PRESS_OUT_H);
-    __u32 pressure = (press_h << 16) | (press_l << 8) | press_xl;     
-    float pressure_hpa = convert_from_complement(pressure, 24) / 4096.0f;
+int fd;
 
-    return pressure_hpa;
+
+int get_pressure(float* out) {
+    byte_t tmp;
+
+    if (i2c_read(fd, PRESS_POUT_XL_REH, &tmp) < 0) return -1;
+    __u32 press_xl = tmp;
+    
+    if (i2c_read(fd, PRESS_OUT_L, &tmp) < 0) return -1;
+    __u32 press_l = tmp;
+    
+    if (i2c_read(fd, PRESS_OUT_H, &tmp) < 0) return -1;
+    __u32 press_h = tmp;
+
+    __u32 pressure = (press_h << 16) | (press_l << 8) | press_xl;     
+    *out = convert_from_complement(pressure, 24) / 4096.0f;
+
+    return 0;
 }
 
-float get_temperature(int fd) {
-    __u32 temp_h = i2c_read(fd, TEMP_OUT_H);
-    __u32 temp_l = i2c_read(fd, TEMP_OUT_L);
+int get_temperature(float* out) {
+    byte_t buf;
+    
+    if (i2c_read(fd, TEMP_OUT_H, &buf) < 0) return -1;
+    __u32 temp_h = buf;
+    
+    if (i2c_read(fd, TEMP_OUT_L, &buf) < 0) return -1;
+    __u32 temp_l = buf;
+    
     __u32 temp = (temp_h << 8) | temp_l;
 
-    float temp_degc = 42.5f + convert_from_complement(temp, 16) / 480.0f;
+    *out = 42.5f + convert_from_complement(temp, 16) / 480.0f;
 
-    return temp_degc;
+    return 0;
 }
 
-void turn_active_and_config(int fd) {
+void active_1hz() {
     // turn active, 1Hz output data rate
     i2c_write(fd, CTRL_REG1, 0x90);
 }
+
+
+int connect_lps331ap(const char* device_name, const unsigned char i2c_address) {
+    fd = i2c_connect(device_name, i2c_address);
+
+    if (fd < 0) {
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+
+void close_lps331ap() {
+    close(fd);
+}
+
+
 
