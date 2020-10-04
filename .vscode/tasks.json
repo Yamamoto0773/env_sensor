@@ -9,9 +9,9 @@
                 "${fileDirname}/main.c",
                 "${fileDirname}/i2c.c",
                 "${fileDirname}/serial.c",
-                "${fileDirname}/lps331ap.c",
+                
                 "${fileDirname}/mhz19b.c",
-                "${fileDirname}/sht31dis.c",
+                
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],
