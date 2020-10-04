@@ -31,6 +31,7 @@ int main(void) {
     double temp = -45 + 175.0 * temp_raw / _16BIT_MAX;
     double rh = 100.0 * rh_raw / _16BIT_MAX;
 
+
     // read pressure
     buf[0] = 0x90;
     if (i2c_write(lps331ap_i2c_address, 0x20, buf, 1) < 0) return -1;
@@ -47,6 +48,8 @@ int main(void) {
 
     // read co2
     int co2 = get_co2();
+
+
   
     printf("%2.1f [C]  %2d [%%]  %6.2f [hPa]  CO2: %4d [ppm]\n", temp, (int)rh, pressure_hpa, co2);
 

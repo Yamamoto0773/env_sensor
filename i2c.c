@@ -9,7 +9,7 @@ reference: https://qiita.com/nhiro/items/feb91561a6752144af93
 
 
 int fd;
-byte_t buf[128];
+byte_t buffer[128];
 
 static const char* i2c_device_name;
 
@@ -51,13 +51,7 @@ int i2c_write(byte_t dev_addr, byte_t reg_addr, const byte_t* data, int length) 
         return -1;
     }
 
-    /* I2C-Write用のバッファを準備する. */
-    byte_t* buffer = (byte_t*)malloc(length + 1);
-    if (buffer == NULL) {
-        fprintf(stderr, "i2c_write: failed to memory allocate\n");
-        close(fd);
-        return -1;
-    }
+    /* I2C-Write用のバッファを準備する. */ 
     buffer[0] = reg_addr;              /* 1バイト目にレジスタアドレスをセット. */
     memcpy(&buffer[1], data, length);  /* 2バイト目以降にデータをセット. */
 
@@ -68,12 +62,12 @@ int i2c_write(byte_t dev_addr, byte_t reg_addr, const byte_t* data, int length) 
     /* I2C-Writeを行う. */
     if (ioctl(fd, I2C_RDWR, &ioctl_data) != 1) {
         fprintf(stderr, "i2c_write: failed to ioctl: %s\n", strerror(errno));
-        free(buffer);
+
         close(fd);
         return -1;
     }
 
-    free(buffer);
     close(fd);
+    
     return 0;
 }
