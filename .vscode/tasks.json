@@ -9,9 +9,8 @@
                 "${fileDirname}/main.c",
                 "${fileDirname}/i2c.c",
                 "${fileDirname}/serial.c",
-                
                 "${fileDirname}/mhz19b.c",
-                
+                "${fileDirname}/ambient.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],
