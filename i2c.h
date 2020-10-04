@@ -1,9 +1,12 @@
 #include "serial.h"
 
 #include <linux/i2c-dev.h>
+#include <linux/i2c.h>
 
-int i2c_connect(const char* i2c_device_name, unsigned char i2c_address);
+#include <string.h>
 
-int i2c_read(int fd, byte_t reg, byte_t* out);
 
-int i2c_write(int fd, byte_t reg, byte_t data);
+void i2c_set_device_name(const char* dev_name);
+
+int i2c_read(byte_t dev_addr, byte_t reg_addr, byte_t* data, int length);
+int i2c_write(byte_t dev_addr, byte_t reg_addr, const byte_t* data, int length);

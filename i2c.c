@@ -1,48 +1,79 @@
+/*
+
+reference: https://qiita.com/nhiro/items/feb91561a6752144af93
+
+*/
+
+
 #include "i2c.h"
 
 
-int i2c_connect(const char* i2c_device_name, unsigned char i2c_address) {
-    
-    int fd = open(i2c_device_name, O_RDWR);
-    if (fd < 0) {
-        perror("open device");
-        return -1;
-    }
+int fd;
+byte_t buf[128];
 
-    if (ioctl(fd, I2C_SLAVE, i2c_address) < 0) {
-        perror("select slave");
-        return -1;
-    }
+static const char* i2c_device_name;
 
-    return fd;
+void i2c_set_device_name(const char* dev_name) {
+    i2c_device_name = dev_name;
 }
 
-int i2c_read(int fd, byte_t reg, byte_t* out) {
-    byte_t buf[1];
-
-    buf[0] = reg;
-
-    if (write(fd, buf, 1) != 1) {
-        return -1;
-    }
-    if (read(fd, buf, 1) != 1) {
+int i2c_read(byte_t dev_addr, byte_t reg_addr, byte_t* data, int length) {
+    /* I2Cデバイスをオープンする. */
+    int fd = open(i2c_device_name, O_RDWR);
+    if (fd == -1) {
+        fprintf(stderr, "i2c_read: failed to open: %s\n", strerror(errno));
         return -1;
     }
 
-    *out = buf[0];
+    /* I2C-Readメッセージを作成する. */
+    struct i2c_msg messages[] = {
+        { dev_addr, 0, 1, &reg_addr },         /* レジスタアドレスをセット. */
+        { dev_addr, I2C_M_RD, length, data },  /* dataにlengthバイト読み込む. */
+    };
+    struct i2c_rdwr_ioctl_data ioctl_data = { messages, 2 };
 
+    /* I2C-Readを行う. */
+    if (ioctl(fd, I2C_RDWR, &ioctl_data) != 2) {
+        fprintf(stderr, "i2c_read: failed to ioctl: %s\n", strerror(errno));
+        close(fd);
+        return -1;
+    }
+
+    close(fd);
     return 0;
 }
 
-int i2c_write(int fd, byte_t reg, byte_t data) {
-    byte_t buf[2];
-
-    buf[0] = reg;
-    buf[1] = data;
-
-    if (write(fd, buf, 2) != 2) {
+int i2c_write(byte_t dev_addr, byte_t reg_addr, const byte_t* data, int length) {
+    /* I2Cデバイスをオープンする. */
+    int32_t fd = open(i2c_device_name, O_RDWR);
+    if (fd == -1) {
+        fprintf(stderr, "i2c_write: failed to open: %s\n", strerror(errno));
         return -1;
-    } else {
-        return 0;
     }
+
+    /* I2C-Write用のバッファを準備する. */
+    byte_t* buffer = (byte_t*)malloc(length + 1);
+    if (buffer == NULL) {
+        fprintf(stderr, "i2c_write: failed to memory allocate\n");
+        close(fd);
+        return -1;
+    }
+    buffer[0] = reg_addr;              /* 1バイト目にレジスタアドレスをセット. */
+    memcpy(&buffer[1], data, length);  /* 2バイト目以降にデータをセット. */
+
+    /* I2C-Writeメッセージを作成する. */
+    struct i2c_msg message = { dev_addr, 0, length + 1, buffer };
+    struct i2c_rdwr_ioctl_data ioctl_data = { &message, 1 };
+
+    /* I2C-Writeを行う. */
+    if (ioctl(fd, I2C_RDWR, &ioctl_data) != 1) {
+        fprintf(stderr, "i2c_write: failed to ioctl: %s\n", strerror(errno));
+        free(buffer);
+        close(fd);
+        return -1;
+    }
+
+    free(buffer);
+    close(fd);
+    return 0;
 }

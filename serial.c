@@ -14,10 +14,6 @@ int convert_from_complement(unsigned int value, int bit_len) {
     }
 }
 
-void close_serial(int fd) {
-    close(fd);
-}
-
 
 void wait_for(double sec) {
     

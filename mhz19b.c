@@ -53,6 +53,8 @@ int get_co2() {
     
     write(fd, buf, 9);
 
+    wait_for(0.1);
+
     read(fd, buf, sizeof(buf));
 
     int co2_high = buf[2];
@@ -77,25 +79,3 @@ void close_mhz19b() {
 }
 
 
-int main() {
-    const char* device_name = "/dev/serial0";
-    
-    if (connect_mhz19b(device_name) < 0) {
-        return -1;
-    }
-    
-    while (1) {
-        int co2 = get_co2();
-        if (co2 < 0) {
-            printf("packet was broken\n");
-        }
-
-        printf("CO2: %d [ppm]\n", co2);
-
-        wait_for(1.0);
-    }
-
-    close_mhz19b();
-
-    return 0;
-}
