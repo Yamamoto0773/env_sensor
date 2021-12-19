@@ -51,8 +51,13 @@ int read_pressure(double *pressure_hpa) {
 
 int main(int argc, char** argv) {
     if (argc < 3) {
-        printf("require args: <channel_id> <write_key>\n");
+        printf("require args: <channel_id> <write_key> [--no-send]\n");
         return -1;
+    }
+
+    int disable_post = 0;
+    if (argc >= 4) {
+        disable_post = strcmp(argv[3], "--no-send") == 0;
     }
 
     i2c_set_device_name(i2c_device_name);
@@ -87,23 +92,24 @@ int main(int argc, char** argv) {
         return -1;
     }
       
-    // printf("%2.1f [C]  %2d [%%]  %6.2f [hPa]  CO2: %4d [ppm]\n", temp, (int)rh, pressure_hpa, co2);
+    printf("%2.1f [C]  %2d [%%]  %6.2f [hPa]  CO2: %4d [ppm]\n", temp, (int)rh, pressure_hpa, co2);
 
     close_mhz19b();
 
+    if (!disable_post) {
+        struct ambient_data data;
+        data.temp = temp;
+        data.rh = rh;
+        data.pressure = pressure_hpa;
+        data.co2 = co2;
 
-    struct ambient_data data;
-    data.temp = temp;
-    data.rh = rh;
-    data.pressure = pressure_hpa;
-    data.co2 = co2;
-
-    const char* channel_id = argv[1];
-    const char* write_key = argv[2];
-    
-    if (ambient_send(channel_id, write_key, &data) < 0) {
-        printf("failed to send\n");
-        return -1;
+        const char* channel_id = argv[1];
+        const char* write_key = argv[2];
+        
+        if (ambient_send(channel_id, write_key, &data) < 0) {
+            printf("failed to send\n");
+            return -1;
+        }
     }
 
     return 0;
