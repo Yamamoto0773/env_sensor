@@ -6,7 +6,7 @@
 byte_t buf[128];
 const char* tty_device_name = "/dev/serial0";
 const char* i2c_device_name = "/dev/i2c-1";
-const unsigned char lps331ap_i2c_address = 0x5c;
+const unsigned char lps25hb_i2c_address = 0x5c;
 const unsigned char sht31dis_i2c_address = 0x45;
 
 
@@ -33,13 +33,13 @@ int read_temp_and_rh(double *temp, double *rh) {
 
 int read_pressure(double *pressure_hpa) {
     buf[0] = 0x90;
-    if (i2c_write(lps331ap_i2c_address, 0x20, buf, 1) < 0) return -1;
+    if (i2c_write(lps25hb_i2c_address, 0x20, buf, 1) < 0) return -1;
     wait_for(0.1);
-    if (i2c_read(lps331ap_i2c_address, 0x28, buf, 1) < 0) return -1;
+    if (i2c_read(lps25hb_i2c_address, 0x28, buf, 1) < 0) return -1;
     unsigned press_xl = buf[0];
-    if (i2c_read(lps331ap_i2c_address, 0x29, buf, 1) < 0) return -1;
+    if (i2c_read(lps25hb_i2c_address, 0x29, buf, 1) < 0) return -1;
     unsigned press_l = buf[0];
-    if (i2c_read(lps331ap_i2c_address, 0x2A, buf, 1) < 0) return -1;
+    if (i2c_read(lps25hb_i2c_address, 0x2A, buf, 1) < 0) return -1;
     unsigned press_h = buf[0];
 
     __u32 pressure = (press_h << 16) | (press_l << 8) | press_xl;     
